@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Vraj's PS5 Drift Racer // Oversteer</title>
+  
+  <!-- SEO & Google Indexing Meta Tags -->
+  <meta name="description" content="Play Vraj's new PS5 drift racer game with native PlayStation 5 DualSense controller support, analog triggers, haptic rumble, and high-speed drift physics.">
+  <meta name="keywords" content="Vraj's new PS5 game, Vraj PS5 game, Vraj Shah drift racer, PS5 controller game, Oversteer drift, DualSense web game">
+  <meta name="author" content="Vraj Shah">
+  
+  <!-- OpenGraph / Social Cards -->
+  <meta property="og:title" content="Vraj's New PS5 Game - Oversteer Drift Racer">
+  <meta property="og:description" content="Play Vraj's high-speed PS5 drift racing game with DualSense controller support and haptics!">
+  <meta property="og:type" content="game">
+  <meta name="theme-color" content="#00f0ff">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- In-Game HUD -->
+    <div id="hud" class="hud-overlay">
+      <!-- Top Bar: Lap Times & Drift Score -->
+      <div class="hud-top">
+        <div class="hud-panel lap-panel">
+          <div class="hud-label">LAP <span id="current-lap">1</span> / <span id="total-laps">3</span></div>
+          <div class="hud-value timer" id="current-time">00:00.000</div>
+          <div class="hud-subvalue">BEST: <span id="best-time">--:--.---</span></div>
+        </div>
+
+        <!-- Drift Score Active Counter (Center) -->
+        <div class="drift-score-container" id="drift-score-container">
+          <div class="drift-badge" id="drift-badge">DRIFT</div>
+          <div class="drift-points" id="active-drift-pts">+0</div>
+          <div class="drift-multiplier" id="drift-multiplier">x1.0</div>
+          <div class="drift-quality" id="drift-quality">GREAT ANGLE</div>
+          <div class="drift-total">TOTAL DRIFT: <span id="total-drift-score">0</span> PTS</div>
+        </div>
+
+        <!-- Controller Status Badge -->
+        <div class="hud-panel controller-panel" id="controller-badge">
+          <div class="controller-status">
+            <span class="status-indicator disconnected" id="status-dot"></span>
+            <span class="status-text" id="status-text">WAITING FOR PS5 CONTROLLER</span>
+          </div>
+          <div class="controller-hint" id="controller-hint">Press any button on your DualSense to pair</div>
+        </div>
+      </div>
+
+      <!-- Center Notifications / Countdown -->
+      <div id="countdown-banner" class="announcement-banner hidden">
+        <div class="countdown-text" id="countdown-text">READY</div>
+      </div>
+
+      <!-- Split Time Notification -->
+      <div id="split-notification" class="split-notification hidden">
+        <span id="split-text">-0.42s</span>
+      </div>
+
+      <!-- Bottom Bar: Telemetry, Speedometer, Nitro, Controls Mini-HUD -->
+      <div class="hud-bottom">
+        <!-- DualSense Mini Diagnostics Visualizer -->
+        <div class="controller-hud-card" id="controller-hud-card">
+          <div class="card-header">
+            <span class="ps5-logo">🎮 DUALSENSE</span>
+            <span class="rumble-indicator" id="rumble-indicator">⚡ HAPTIC</span>
+          </div>
+          <div class="controller-inputs-grid">
+            <div class="input-col">
+              <span class="input-label">L2 BRAKE</span>
+              <div class="meter-bar-vertical">
+                <div class="meter-fill" id="l2-meter"></div>
+              </div>
+            </div>
+            <div class="input-col stick-col">
+              <span class="input-label">STEER</span>
+              <div class="stick-preview">
+                <div class="stick-knob" id="stick-knob"></div>
+              </div>
+            </div>
+            <div class="input-col">
+              <span class="input-label">R2 GAS</span>
+              <div class="meter-bar-vertical">
+                <div class="meter-fill gas" id="r2-meter"></div>
+              </div>
+            </div>
+            <div class="input-buttons-cluster">
+              <div class="btn-glyph" id="btn-triangle">△</div>
+              <div class="btn-middle-row">
+                <div class="btn-glyph" id="btn-square">▢</div>
+                <div class="btn-glyph" id="btn-circle">◯</div>
+              </div>
+              <div class="btn-glyph" id="btn-cross">✕</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nitro Boost Gauge -->
+        <div class="nitro-panel">
+          <div class="nitro-label">
+            <span>NITRO SYSTEM</span>
+            <span class="nitro-pct" id="nitro-pct">100%</span>
+          </div>
+          <div class="nitro-track">
+            <div class="nitro-bar" id="nitro-fill"></div>
+          </div>
+          <div class="nitro-prompt">PRESS <span class="badge-ps">▢</span> OR <span class="badge-ps">R1</span> TO BOOST</div>
+        </div>
+
+        <!-- Speedometer & Tachometer Cluster -->
+        <div class="cluster-panel">
+          <div class="tacho-dial">
+            <svg viewBox="0 0 160 90" class="gauge-svg">
+              <path class="gauge-bg" d="M 20 80 A 60 60 0 0 1 140 80" />
+              <path class="gauge-fill" id="rpm-gauge" d="M 20 80 A 60 60 0 0 1 140 80" />
+            </svg>
+            <div class="gear-display" id="gear-val">1</div>
+            <div class="gear-label">GEAR</div>
+          </div>
+          <div class="speed-readout">
+            <div class="speed-num" id="speed-val">0</div>
+            <div class="speed-unit">KM/H</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause / Main Menu Modal -->
+    <div id="menu-overlay" class="menu-overlay">
+      <div class="menu-card">
+        <div class="menu-header">
+          <h1 class="game-title">VRAJ'S OVERSTEER</h1>
+          <div class="game-subtitle">NEW PS5 DUALSENSE DRIFT RACER • BY VRAJ SHAH</div>
+        </div>
+
+        <div class="menu-body">
+          <div class="menu-section">
+            <h3>SELECT TRACK</h3>
+            <div class="track-selector">
+              <button class="track-btn active" data-track="neon">
+                <span class="track-name">NEON BAY CIRCUIT</span>
+                <span class="track-desc">Technical coastal night circuit with tight chicanes and harbor straights</span>
+              </button>
+              <button class="track-btn" data-track="touge">
+                <span class="track-name">TOUGE MOUNTAIN PASS</span>
+                <span class="track-desc">Drift heaven featuring 5 consecutive high-angle switchback hairpins</span>
+              </button>
+              <button class="track-btn" data-track="speedway">
+                <span class="track-name">CYBER HIGH SPEEDWAY</span>
+                <span class="track-desc">High-speed sweeping bends & wide drift arcs under cyberpunk billboards</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="menu-section">
+            <h3>SELECT VEHICLE</h3>
+            <div class="car-selector">
+              <button class="car-btn active" data-car="apex">
+                <span class="car-color-swatch apex"></span>
+                <span class="car-name">APEX GT</span>
+                <span class="car-spec">BALANCED // 480 HP</span>
+              </button>
+              <button class="car-btn" data-car="ryu">
+                <span class="car-color-swatch ryu"></span>
+                <span class="car-name">RYU SPEC-D</span>
+                <span class="car-spec">DRIFT SPECIALIST // ULTRA ANGLE</span>
+              </button>
+              <button class="car-btn" data-car="phantom">
+                <span class="car-color-swatch phantom"></span>
+                <span class="car-name">PHANTOM V8</span>
+                <span class="car-spec">POWER MUSCLE // 620 HP</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Controller Mapping Guide -->
+          <div class="menu-section controller-guide-section">
+            <h3>PS5 CONTROLLER SCHEME</h3>
+            <div class="guide-grid">
+              <div class="guide-item"><span class="badge-ps">R2</span> Accelerate (Analog)</div>
+              <div class="guide-item"><span class="badge-ps">L2</span> Brake / Reverse (Analog)</div>
+              <div class="guide-item"><span class="badge-ps">L-STICK</span> Smooth Precision Steering</div>
+              <div class="guide-item"><span class="badge-ps">✕</span> Handbrake Drift Initiation</div>
+              <div class="guide-item"><span class="badge-ps">▢</span> or <span class="badge-ps">R1</span> Nitro Boost</div>
+              <div class="guide-item"><span class="badge-ps">△</span> Change Camera View</div>
+              <div class="guide-item"><span class="badge-ps">◯</span> Reset Car to Track</div>
+              <div class="guide-item"><span class="badge-ps">OPTIONS</span> Pause / Menu</div>
+            </div>
+            <div class="keyboard-note">
+              ⌨️ Keyboard also supported: <b>W/S</b> Throttle/Brake, <b>A/D</b> Steer, <b>Space</b> Handbrake, <b>Shift</b> Nitro, <b>C</b> Camera, <b>R</b> Reset, <b>Esc</b> Menu.
+            </div>
+          </div>
+
+          <div class="menu-settings">
+            <label class="setting-item">
+              <span>DualSense Haptic Rumble</span>
+              <input type="checkbox" id="rumble-toggle" checked>
+            </label>
+            <label class="setting-item">
+              <span>Engine & Tire Audio</span>
+              <input type="checkbox" id="audio-toggle" checked>
+            </label>
+          </div>
+        </div>
+
+        <div class="menu-actions">
+          <button id="start-btn" class="primary-btn">START RACE [PRESS ✕ OR ENTER]</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/track.js"></script>
+  <script src="js/car.js"></script>
+  <script src="js/gamepad.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

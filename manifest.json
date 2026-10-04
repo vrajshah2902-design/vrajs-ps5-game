@@ -1,0 +1,17 @@
+{
+  "name": "Vraj's PS5 Drift Racer // Oversteer",
+  "short_name": "Vraj's PS5 Game",
+  "description": "High-octane arcade drift racing game with PS5 DualSense controller support and haptics by Vraj Shah.",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0a0b10",
+  "theme_color": "#00f0ff",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
